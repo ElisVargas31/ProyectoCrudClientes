@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 register-section">
+                <h3>Registrar Usuario</h3>
+                <form method="post" action="http://localhost:8080/ClientesCrud/simpleServlet">
+                    <input type="hidden" name="action" value="guardar"> <!-- Agregado -->
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="apellido" name="apellido" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="identificacion" class="form-label">Identificación</label>
+                        <input type="text" class="form-control" id="identificacion" name="identificacion" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </form>
+            </div>
+
+            <div class="col-md-6 display-section">
+                <h3>Usuarios Registrados</h3>
+                <ul id="userList" class="list-group">
+                    <!-- Aquí se agregarán los usuarios -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para mensajes de éxito -->
+    <div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="responseModalLabel">Información</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalMessage">
+                    <!-- Mensaje de respuesta -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('http://localhost:8080/ClientesCrud/simpleServlet')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = ''; // Limpiar la lista antes de agregar nuevos elementos
+
+                    data.forEach(user => {
+                        const userItem = document.createElement('li');
+                        userItem.classList.add('list-group-item');
+                        userItem.textContent = `Nombre: ${user.nombre}, Apellido: ${user.apellido}, Identificación: ${user.identificacion}`;
+                        
+                        // Botón de eliminar
+                        const deleteButton = document.createElement('button');
+                        deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'float-end', 'me-2');
+                        deleteButton.textContent = 'Eliminar';
+                        deleteButton.onclick = () => eliminarUsuario(user.Id); // Asegúrate de que hay un id
+
+                        // Botón de modificar
+                        const modifyButton = document.createElement('button');
+                        modifyButton.classList.add('btn', 'btn-warning', 'btn-sm', 'float-end');
+                        modifyButton.textContent = 'Modificar';
+                        modifyButton.onclick = () => modificarUsuario(user.Id); // Asegúrate de que hay un id
+
+                        userItem.appendChild(modifyButton);
+                        userItem.appendChild(deleteButton);
+                        userList.appendChild(userItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al obtener la lista de usuarios:', error);
+                });
+        });
+
+        function eliminarUsuario(id) {
+            fetch('http://localhost:8080/ClientesCrud/simpleServlet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=eliminar&id=${id}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    mostrarMensaje('Usuario eliminado con éxito');
+                    location.reload(); // Recargar la lista de usuarios
+                }
+            })
+            .catch(error => {
+                console.error('Error al eliminar usuario:', error);
+                mostrarMensaje('Error al eliminar usuario');
+            });
+        }
+
+        function modificarUsuario(id) {
+            // Implementa la lógica para modificar, quizás redirigir a otro formulario
+            console.log('Modificar usuario con ID:', id);
+            // Aquí podrías redirigir a una página de modificación o mostrar un formulario
+        }
+
+        function mostrarMensaje(mensaje) {
+            document.getElementById('modalMessage').textContent = mensaje;
+            const modal = new bootstrap.Modal(document.getElementById('responseModal'));
+            modal.show();
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
